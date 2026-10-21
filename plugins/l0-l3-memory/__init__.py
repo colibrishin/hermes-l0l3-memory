@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import os
 
+from agent.memory_provider import MemoryProvider
+
 MAX_L0_LINES = 30
 MAX_L1_LINES = 120
 MAX_TOTAL_CHARS = 6000
@@ -41,29 +43,27 @@ def build_l0_l3_memory_block(workdir: str | Path | None = None) -> str:
     return "\n\n".join(sections)[:MAX_TOTAL_CHARS]
 
 
-class L0L3MemoryProvider:
-    name = "l0-l3-memory"
+class L0L3MemoryProvider(MemoryProvider):
+    @property
+    def name(self) -> str:
+        return "l0-l3-memory"
 
-    def recall(self, *args, **kwargs) -> str:
-        workdir = kwargs.get("workdir") or kwargs.get("cwd")
-        return build_l0_l3_memory_block(workdir)
+    def __init__(self) -> None:
+        self._block = ""
 
-    def get_context(self, *args, **kwargs) -> str:
-        return self.recall(*args, **kwargs)
+    def is_available(self) -> bool:
+        return True
+
+    def initialize(self, session_id: str, **kwargs) -> None:
+        workdir = kwargs.get("cwd") or kwargs.get("workdir") or os.getcwd()
+        self._block = build_l0_l3_memory_block(workdir)
+
+    def system_prompt_block(self) -> str:
+        return self._block
+
+    def get_tool_schemas(self) -> list[dict]:
+        return []
 
 
 def register(ctx) -> None:
-    provider = L0L3MemoryProvider()
-    if hasattr(ctx, "register_memory_provider"):
-        try:
-            ctx.register_memory_provider("l0-l3-memory", provider)
-        except Exception:
-            pass
-    if hasattr(ctx, "register_system_prompt_section"):
-        try:
-            ctx.register_system_prompt_section(
-                "l0_l3_memory",
-                lambda *a, **kw: build_l0_l3_memory_block(),
-            )
-        except Exception:
-            pass
+    ctx.register_memory_provider(L0L3MemoryProvider())
