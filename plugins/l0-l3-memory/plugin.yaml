@@ -1,4 +1,4 @@
 ﻿name: l0-l3-memory
-version: 1.0.0
-description: Zero-bloat L0-L3 tiered memory provider for Hermes Agent. Injects only .memory/L0-index.md and .memory/L1-active.md at session start.
+version: 1.1.0
+description: Zero-bloat L0-L3 tiered memory provider for Hermes Agent. Injects L0-index.md and L1-active.md from the global store (<hermes_home>/l0-l3-memory) then the nearest project .memory/ at session start.
 entry_point: __init__.py
